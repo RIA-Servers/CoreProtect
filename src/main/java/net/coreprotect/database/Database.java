@@ -889,32 +889,12 @@ public class Database extends Queue {
     }
 
     private static void createMySQLIndexes(String prefix, Statement statement, boolean purge) {
-        try {
-            ensureMySQLIndex(statement, prefix + "block", "wid", "x", "z", "time");
-            ensureMySQLIndex(statement, prefix + "block", "user", "time");
-            ensureMySQLIndex(statement, prefix + "block", "type", "time");
-            ensureMySQLIndex(statement, prefix + "container", "wid", "x", "z", "time");
-            ensureMySQLIndex(statement, prefix + "container", "user", "time");
-            ensureMySQLIndex(statement, prefix + "container", "type", "time");
-            ensureMySQLIndex(statement, prefix + "entity_container", "wid", "x", "z", "time");
-            ensureMySQLIndex(statement, prefix + "entity_container", "entity_spawn_rowid", "time");
-            ensureMySQLIndex(statement, prefix + "entity_container", "user", "time");
-            ensureMySQLIndex(statement, prefix + "entity_container", "type", "time");
-            ensureMySQLIndex(statement, prefix + "entity_interaction", "wid", "x", "z", "time");
-            ensureMySQLIndex(statement, prefix + "entity_interaction", "entity_spawn_rowid", "time");
-            ensureMySQLIndex(statement, prefix + "entity_interaction", "user", "time");
-            ensureMySQLIndex(statement, prefix + "entity_interaction", "type", "time");
-            ensureMySQLIndex(statement, prefix + "entity_interaction", "action", "time");
-            ensureMySQLIndex(statement, prefix + "item", "wid", "x", "z", "time");
-            ensureMySQLIndex(statement, prefix + "item", "user", "time");
-            ensureMySQLIndex(statement, prefix + "item", "type", "time");
-        }
-        catch (Exception e) {
-            Chat.console(Phrase.build(Phrase.DATABASE_INDEX_ERROR));
-            if (purge) {
-                ErrorReporter.report(e);
-            }
-        }
+        // RIA patch 2026-09-08: skip automatic index creation entirely.
+        // Our production tables already carry a custom wid(x,z,y,rolled_back,action,time)
+        // composite index maintained by ops; CoreProtect's CREATE INDEX on multi-GB
+        // legacy tables would trigger hour-long full-table rebuilds during startup
+        // schema checks. This routine never touches existing indexes; only the
+        // creation of missing ones is skipped.
     }
 
     private static void ensureMySQLIndex(Statement statement, String tableName, String... columns) throws SQLException {
